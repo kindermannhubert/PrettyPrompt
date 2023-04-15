@@ -4,6 +4,7 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 #endregion
 
+using System;
 using PrettyPrompt.Consoles;
 
 using static System.ConsoleKey;
@@ -32,7 +33,7 @@ public class KeyBindings
     {
         CommitCompletion = Get(commitCompletion, new(Enter), new(Tab));
         TriggerCompletionList = Get(triggerCompletionList, new KeyPressPattern(Control, Spacebar));
-        NewLine = Get(newLine, new KeyPressPattern(Shift, Enter));
+        NewLine = Get(newLine, OperatingSystem.IsWindows() ? new KeyPressPattern(Shift, Enter) : new KeyPressPattern(Alt, Enter));
         SubmitPrompt = Get(submitPrompt, new(Enter), new(Control, Enter), new(Control | Alt, Enter));
         HistoryPrevious = Get(historyPrevious, new KeyPressPattern(UpArrow));
         HistoryNext = Get(historyNext, new KeyPressPattern(DownArrow));
