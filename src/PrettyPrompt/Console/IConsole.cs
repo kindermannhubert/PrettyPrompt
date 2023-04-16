@@ -23,6 +23,9 @@ public interface IConsole
     /// <inheritdoc cref="Console.BufferWidth"/>
     int BufferWidth { get; }
 
+    /// <inheritdoc cref="Console.BufferHeight"/>
+    int BufferHeight { get; }
+
     /// <inheritdoc cref="Console.WindowHeight"/>
     int WindowHeight { get; }
 

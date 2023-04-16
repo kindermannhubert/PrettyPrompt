@@ -118,7 +118,7 @@ internal class Renderer : IDisposable
             var ansiCoordinate = new ConsoleCoordinate
             (
                 row: 1 + codePane.TopCoordinate,
-                column: 1 + configuration.Prompt.Length
+                column: 1 + configuration.Prompt.GetUnicodeWidth()
             );
 
             // draw screen areas to screen representation.

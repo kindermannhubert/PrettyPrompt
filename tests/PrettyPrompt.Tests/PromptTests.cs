@@ -572,4 +572,34 @@ public class PromptTests
         Assert.Equal("> ", output[1]);
         Assert.Equal("***", output[5]);
     }
+
+    /// <summary>
+    /// https://github.com/waf/PrettyPrompt/issues/257
+    /// </summary>
+    [Fact]
+    public async Task ReadLineAsync_InputLengthIsLimitedByBufferSize()
+    {
+        var console = ConsoleStub.NewConsole();
+        var cfg = new PromptConfiguration() { Prompt = "" };
+
+        console.BufferWidth.Returns(5);
+        console.BufferHeight.Returns(3);
+
+        console.StubInput($"12345{Shift}{Enter}12345{Shift}{Enter}1234X{Shift}{Enter}XXXXXXXXX{Shift}{Enter}{Enter}");
+        var prompt = new Prompt(console: console, configuration: cfg);
+        var result = await prompt.ReadLineAsync();
+
+        //missing '5' at the end is correct - adding it would create new empty line (so user can continue writing)
+        Assert.Equal($"12345{NewLine}12345{NewLine}1234", result.Text);
+
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+        
+
+        console.StubInput($"a{Shift}{Enter}b{Shift}{Enter}c{Shift}{Enter}12345{Shift}{Enter}{Enter}");
+        result = await prompt.ReadLineAsync();
+
+        //missing '4' at the end is correct - adding it would create new empty line (so user can continue writing)
+        Assert.Equal($"a{NewLine}b{NewLine}c123", result.Text);
+    }
 }

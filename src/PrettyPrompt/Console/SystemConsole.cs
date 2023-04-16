@@ -16,6 +16,7 @@ public class SystemConsole : IConsole
 {
     public int CursorTop => Console.CursorTop;
     public int BufferWidth => Console.BufferWidth;
+    public int BufferHeight => Console.BufferHeight;
     public int WindowHeight => Console.WindowHeight;
     public int WindowTop => Console.WindowTop;
     public bool KeyAvailable => Console.KeyAvailable;

@@ -128,7 +128,11 @@ internal class CodePane : IKeyPressHandler
 
         WordWrap();
 
-        void WordWrap() => wordWrappedText = Document.WrapEditableCharacters(CodeAreaWidth);
+        void WordWrap()
+        {
+            wordWrappedText = Document.WrapEditableCharacters(CodeAreaWidth);
+            TrimDocumentToConsoleBuffer();
+        }
     }
 
     internal void Bind(CompletionPane completionPane, OverloadPane overloadPane)
@@ -388,10 +392,8 @@ internal class CodePane : IKeyPressHandler
     internal void MeasureConsole()
     {
         TopCoordinate = Math.Max(0, console.CursorTop - console.WindowTop - Cursor.Row);
-        CodeAreaWidth = Math.Max(0, console.BufferWidth - configuration.Prompt.Length);
+        CodeAreaWidth = Math.Max(0, console.BufferWidth - configuration.Prompt.GetUnicodeWidth());
         CodeAreaHeight = Math.Max(0, console.WindowHeight - TopCoordinate);
-
-        Debug.WriteLine($"CodeAreaHeight: {CodeAreaHeight} TopCoordinate: {TopCoordinate}");
     }
 
     public async Task OnKeyUp(KeyPress key, CancellationToken cancellationToken)
@@ -440,7 +442,7 @@ internal class CodePane : IKeyPressHandler
         int documentationWidth = completionPane.SelectedItemDocumentationWidth;
 
         int requiredWidth = Math.Max(completionPaneWidth + documentationWidth - 1, overloadPaneWidth); //-1 because completionPane shares 1 column with documentationBox
-        var codeAreaStartColumn = configuration.Prompt.Length;
+        var codeAreaStartColumn = configuration.Prompt.GetUnicodeWidth();
         var cursor = Cursor;
         return new ConsoleCoordinate(
             row: Math.Min(cursor.Row, Math.Max(CodeAreaHeight - EmptySpaceAtBottomOfWindowHeight - 1, 0)) + 1,
@@ -448,6 +450,30 @@ internal class CodePane : IKeyPressHandler
                 : cursor.Column + requiredWidth >= codeAreaWidth ? codeAreaWidth - requiredWidth // not enough room to show to completion box offset to the current cursor. We'll position it stuck to the right.
                 : cursor.Column // enough room, we'll show the completion box offset at the cursor location.
         );
+    }
+
+    //https://github.com/waf/PrettyPrompt/issues/257
+    private void TrimDocumentToConsoleBuffer()
+    {
+        var bufferHeight = console.BufferHeight;
+        if (bufferHeight < 1)
+        {
+            Document.Clear(this);
+        }
+        else if (WordWrappedLines.Count > bufferHeight)
+        {
+            var lastValidLine = WordWrappedLines[bufferHeight - 1];
+            var endIndex = lastValidLine.StartIndex + lastValidLine.Content.Length;
+            if (lastValidLine.Content[^1] == '\n' ||
+                configuration.Prompt.GetUnicodeWidth() + lastValidLine.UnicodeWidth >= console.BufferWidth)
+            {
+                endIndex--;
+            }
+            Document.Remove(this, startIndex: endIndex, Document.Length - endIndex);
+        }
+
+        wordWrappedText = Document.WrapEditableCharacters(CodeAreaWidth);
+        Debug.Assert(WordWrappedLines.Count <= bufferHeight);
     }
 
     [Conditional("DEBUG")]

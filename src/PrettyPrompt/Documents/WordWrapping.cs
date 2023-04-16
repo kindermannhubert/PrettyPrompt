@@ -81,7 +81,7 @@ internal static class WordWrapping
                         cursorRow++;
                         cursorColumn = 0;
                     }
-                    lines.Add(new WrappedLine(textIndex - line.Length, line.ToString()));
+                    lines.Add(new WrappedLine(textIndex - line.Length, line.ToString(), currentLineLength));
                     line.Clear();
                     currentLineLength = 0;
                 }
@@ -246,14 +246,21 @@ internal readonly struct WrappedLine
 {
     public readonly int StartIndex;
     public readonly string Content;
+    public readonly int UnicodeWidth;
 
     public WrappedLine(int startIndex, string content)
+        : this(startIndex, content, Rendering.UnicodeWidth.GetWidth(content))
+    { }
+
+    public WrappedLine(int startIndex, string content, int unicodeWidth)
     {
         Debug.Assert(startIndex >= 0);
+        Debug.Assert(unicodeWidth == Rendering.UnicodeWidth.GetWidth(content));
 
         StartIndex = startIndex;
         Content = content;
+        UnicodeWidth = unicodeWidth;
     }
 
-    public static WrappedLine Empty(int startIndex) => new(startIndex, string.Empty);
+    public static WrappedLine Empty(int startIndex) => new(startIndex, string.Empty, 0);
 }

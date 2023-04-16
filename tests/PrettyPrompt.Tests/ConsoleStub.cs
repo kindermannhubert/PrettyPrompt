@@ -29,6 +29,7 @@ internal static class ConsoleStub
     {
         var console = Substitute.For<ConsoleWithClipboard>();
         console.BufferWidth.Returns(width);
+        console.BufferHeight.Returns(height);
         console.WindowHeight.Returns(height);
         console.Clipboard.Returns(new ProtectedClipboard());
 
@@ -283,6 +284,7 @@ public abstract class ConsoleWithClipboard : IConsoleWithClipboard
     public abstract IClipboard Clipboard { get; }
     public abstract int CursorTop { get; }
     public abstract int BufferWidth { get; }
+    public abstract int BufferHeight { get; }
     public abstract int WindowHeight { get; }
     public abstract int WindowTop { get; }
     public abstract bool KeyAvailable { get; }

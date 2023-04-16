@@ -29,7 +29,7 @@ internal class Tests
 
         var console = new ReplayingConsole(GetDataPath("record#228#229" + (biggerBufferThanWindow ? "a" : "b")));
         await Program.Run(console);
-        console.Save("record#actual"); //for debuging
+        console.Save("record#actual"); //for debugging
         CheckOutputLogs(console.ReplayOutputLog, console.RecordedOutputLog);
     }
 
