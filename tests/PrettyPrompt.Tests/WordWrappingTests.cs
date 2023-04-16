@@ -90,7 +90,7 @@ public class WordWrappingTests
     public void WrapWords_WithNewLines_SplitsAtNewLines()
     {
         var text = "Here is some\ntext that should be wrapped word by\nword. supercalifragilisticexpialidocious";
-        
+
         var wrapped = WordWrapping.WrapWords(text, 20).Select(l => l.Text);
         Assert.Equal(
             new[]
@@ -205,7 +205,7 @@ public class WordWrappingTests
     {
         var wrapped = WordWrapping.WrapWords("", 20).Select(l => l.Text);
         Assert.Equal(new string[] { }, wrapped);
-        
+
         wrapped = WordWrapping.WrapWords("", 20, maxLines: 1).Select(l => l.Text);
         Assert.Equal(new string[] { }, wrapped);
     }
@@ -214,12 +214,31 @@ public class WordWrappingTests
     public void WrapWords_NewLineAtStart()
     {
         var wrapped = WordWrapping.WrapWords("\nhello", 20).Select(l => l.Text);
-        Assert.Equal(new string[] { "", "hello" }, wrapped);
+        Assert.Equal(new[] { "", "hello" }, wrapped);
 
         wrapped = WordWrapping.WrapWords("\nhello", 20, maxLines: 1).Select(l => l.Text);
-        Assert.Equal(new string[] { "..." }, wrapped);
+        Assert.Equal(new[] { "..." }, wrapped);
 
         wrapped = WordWrapping.WrapWords("\nhello", 20, maxLines: 2).Select(l => l.Text);
-        Assert.Equal(new string[] { "", "hello" }, wrapped);
+        Assert.Equal(new[] { "", "hello" }, wrapped);
+    }
+
+    /// <summary>
+    /// https://github.com/waf/PrettyPrompt/issues/256
+    /// </summary>
+    [Fact]
+    public void WrapWords_InvalidExtraLineBug()
+    {
+        var wrapped = Wrap("1234\nabcd\nxy");
+        Assert.Equal(new[] { "1234", "abcd", "xy" }, wrapped);
+
+        wrapped = Wrap("1234\n\nabcd\nxy");
+        Assert.Equal(new[] { "1234", "\n", "abcd", "xy" }, wrapped);
+
+        static string[] Wrap(string input) =>
+            WordWrapping.WrapEditableCharacters(new StringBuilder(input), caret: 0, width: 4)
+            .WrappedLines
+            .Select(l => l.Content)
+            .ToArray();
     }
 }

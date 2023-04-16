@@ -37,16 +37,28 @@ internal static class WordWrapping
         int textIndex = 0;
         int cursorColumn = 0;
         int cursorRow = 0;
+        bool implicitNewLineUsed = false;
         foreach (var chunkMemory in input.GetChunks())
         {
             var chunk = chunkMemory.Span;
             for (var i = 0; i < chunk.Length; i++)
             {
                 char character = chunk[i];
-                line.Append(character);
-                bool isCursorPastCharacter = caret > textIndex;
-
                 Debug.Assert(character != '\t', "tabs should be replaced by spaces");
+                
+                bool isCursorPastCharacter = caret > textIndex;
+                textIndex++;
+
+                if (implicitNewLineUsed && character == '\n')
+                {
+                    //https://github.com/waf/PrettyPrompt/issues/256
+                    //we want to skip this new-line character because line is already wrapped because of console buffer width
+                    implicitNewLineUsed = false;
+                    continue;
+                }
+
+                line.Append(character);
+
                 int unicodeWidth = UnicodeWidth.GetWidth(character);
                 if (unicodeWidth < 1)
                 {
@@ -54,13 +66,14 @@ internal static class WordWrapping
                     continue;
                 }
                 currentLineLength += unicodeWidth;
-                textIndex++;
 
                 if (isCursorPastCharacter && !char.IsControl(character))
                 {
                     cursorColumn++;
                 }
-                if (character == '\n' || currentLineLength == width ||
+
+                implicitNewLineUsed = currentLineLength == width;
+                if (character == '\n' || implicitNewLineUsed ||
                     NextCharacterIsFullWidthAndWillWrap(width, currentLineLength, chunk, i))
                 {
                     if (isCursorPastCharacter)
